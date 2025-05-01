@@ -1,9 +1,7 @@
-#include <iostream>
+#include "MazeSolver.h"
 
-using namespace std;
-
-int main()
-{
-    cout << "Hello CSE246" << endl;
+int main() {
+    MazeSolver solver;
+    solver.solve();
     return 0;
 }
