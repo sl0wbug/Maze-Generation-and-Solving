@@ -1,55 +1,60 @@
 #include "MazeSolver.h"
 #include <iostream>
+#include <queue>
 
-using namespace std;
+MazeSolver::MazeSolver(std::vector<std::vector<char>> m, int r, int c)
+    : maze(m), rows(2 * r + 1), cols(2 * c + 1) {}
 
-MazeSolver::MazeSolver() {
-    maze = {
-        {1, 0, 0},
-        {1, 1, 0},
-        {0, 1, 1}
-    };
+void MazeSolver::solveWithBFS() {
+    std::queue<std::pair<int, int>> q;
+    std::vector<std::vector<bool>> visited(rows, std::vector<bool>(cols, false));
+    std::vector<std::vector<std::pair<int, int>>> parent(rows, std::vector<std::pair<int, int>>(cols, {-1, -1}));
 
-    rows = maze.size();
-    cols = maze[0].size();
-    visited = vector<vector<bool>>(rows, vector<bool>(cols, false));
-}
+    q.push({0, 1});
+    visited[0][1] = true;
 
-bool MazeSolver::isValid(int x, int y) {
-    return x >= 0 && x < rows && y >= 0 && y < cols &&
-           maze[x][y] == 1 && !visited[x][y];
-}
+    int dx[] = {0, 1, 0, -1};
+    int dy[] = {1, 0, -1, 0};
+    std::pair<int, int> end = {-1, -1};
 
-bool MazeSolver::dfs(int x, int y) {
-    if (x == rows - 1 && y == cols - 1) {
-        path.push_back({x, y});
-        return true;
-    }
+    while (!q.empty()) {
+        auto [x, y] = q.front();
+        q.pop();
+        if (maze[x][y] == 'E') {
+            end = {x, y};
+            break;
+        }
 
-    visited[x][y] = true;
-
-    for (int i = 0; i < 4; ++i) {
-        int newX = x + dx[i];
-        int newY = y + dy[i];
-
-        if (isValid(newX, newY) && dfs(newX, newY)) {
-            path.push_back({x, y});
-            return true;
+        for (int i = 0; i < 4; ++i) {
+            int nx = x + dx[i], ny = y + dy[i];
+            if (nx >= 0 && ny >= 0 && nx < rows && ny < cols &&
+                maze[nx][ny] != '#' && !visited[nx][ny]) {
+                visited[nx][ny] = true;
+                parent[nx][ny] = {x, y};
+                q.push({nx, ny});
+            }
         }
     }
 
-    return false;
-}
+    if (end.first == -1) {
+        std::cout << "No path found.\n";
+        return;
+    }
 
-void MazeSolver::solve() {
-    if (dfs(0, 0)) {
-        cout << "Path found using DFS:\n";
-        for (auto it = path.rbegin(); it != path.rend(); ++it) {
-            cout << "(" << it->first << "," << it->second << ") ";
+    // Mark path
+    auto p = end;
+    while (p != std::make_pair(0, 1)) {
+        if (maze[p.first][p.second] == ' ') {
+            maze[p.first][p.second] = '.';
         }
-        cout << endl;
-    } else {
-        cout << "No path found!" << endl;
+        p = parent[p.first][p.second];
+    }
+
+    std::cout << "Solved Maze:\n";
+    for (auto &row : maze) {
+        for (char cell : row)
+            std::cout << cell;
+        std::cout << '\n';
     }
 }
 
